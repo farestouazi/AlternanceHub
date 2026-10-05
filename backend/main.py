@@ -19,6 +19,16 @@ class Job(BaseModel):
     start_date: str | None = None
     education_level: str | None = None
 
+class JobCreate(BaseModel):
+    title: str
+    description: str
+    company_id: int
+    city: str | None = None
+    salary: str | None = None
+    duration: str | None = None
+    start_date: str | None = None
+    education_level: str | None = None
+
 app = FastAPI()
 
 @app.get("/")
@@ -93,3 +103,45 @@ def get_jobs():
     connection.close()
 
     return jobs
+
+@app.post("/jobs", response_model=Job)
+def create_job(job: JobCreate):
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO jobs (
+            title,
+            description,
+            company_id,
+            city,
+            salary,
+            duration,
+            start_date,
+            education_level
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+    """, (
+        job.title,
+        job.description,
+        job.company_id,
+        job.city,
+        job.salary,
+        job.duration,
+        job.start_date,
+        job.education_level
+    ))
+
+    job_id = cursor.fetchone()[0]
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return {
+        "id": job_id,
+        **job.model_dump()
+    }
