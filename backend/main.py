@@ -156,6 +156,47 @@ def get_job(job_id: int):
         "education_level": job[8]
     }
 
+@app.post("/jobs", response_model=Job)
+def create_job(job: JobCreate):
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO jobs (
+            title,
+            description,
+            company_id,
+            city,
+            salary,
+            duration,
+            start_date,
+            education_level
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+    """, (
+        job.title,
+        job.description,
+        job.company_id,
+        job.city,
+        job.salary,
+        job.duration,
+        job.start_date,
+        job.education_level
+    ))
+
+    job_id = cursor.fetchone()[0]
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    return {
+        "id": job_id,
+        **job.model_dump()
+    }
 
 @app.put("/jobs/{job_id}", response_model=Job)
 def update_job(job_id: int, job: JobUpdate):
@@ -208,44 +249,28 @@ def update_job(job_id: int, job: JobUpdate):
         "education_level": updated_job[8]
     }
 
-@app.post("/jobs", response_model=Job)
-def create_job(job: JobCreate):
-    connection = get_connection()
 
+@app.delete("/jobs/{job_id}")
+def delete_job(job_id: int):
+    connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
-        INSERT INTO jobs (
-            title,
-            description,
-            company_id,
-            city,
-            salary,
-            duration,
-            start_date,
-            education_level
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id
-    """, (
-        job.title,
-        job.description,
-        job.company_id,
-        job.city,
-        job.salary,
-        job.duration,
-        job.start_date,
-        job.education_level
-    ))
+    cursor.execute(
+        "DELETE FROM jobs WHERE id = %s RETURNING id",
+        (job_id,)
+    )
 
-    job_id = cursor.fetchone()[0]
+    deleted_job = cursor.fetchone()
 
     connection.commit()
-
     cursor.close()
     connection.close()
 
+    if deleted_job is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Offre introuvable")
+
     return {
-        "id": job_id,
-        **job.model_dump()
+        "message": "Offre supprimée avec succès",
+        "id": deleted_job[0]
     }
