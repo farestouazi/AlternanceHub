@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from database import get_connection
 from pydantic import BaseModel
+from datetime import date
 
 class Company(BaseModel):
     id: int
@@ -27,6 +28,16 @@ class JobCreate(BaseModel):
     salary: str | None = None
     duration: str | None = None
     start_date: str | None = None
+    education_level: str | None = None
+
+class JobUpdate(BaseModel):
+    title: str
+    description: str
+    company_id: int
+    city: str | None = None
+    salary: str | None = None
+    duration: str | None = None
+    start_date: date | None = None
     education_level: str | None = None
 
 app = FastAPI()
@@ -143,6 +154,58 @@ def get_job(job_id: int):
         "duration": job[6],
         "start_date": str(job[7]) if job[7] else None,
         "education_level": job[8]
+    }
+
+
+@app.put("/jobs/{job_id}", response_model=Job)
+def update_job(job_id: int, job: JobUpdate):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE jobs
+        SET title = %s,
+            description = %s,
+            company_id = %s,
+            city = %s,
+            salary = %s,
+            duration = %s,
+            start_date = %s,
+            education_level = %s
+        WHERE id = %s
+        RETURNING id, title, description, company_id, city,
+                  salary, duration, start_date, education_level
+    """, (
+        job.title,
+        job.description,
+        job.company_id,
+        job.city,
+        job.salary,
+        job.duration,
+        job.start_date,
+        job.education_level,
+        job_id
+    ))
+
+    updated_job = cursor.fetchone()
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    if updated_job is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Offre introuvable")
+
+    return {
+        "id": updated_job[0],
+        "title": updated_job[1],
+        "description": updated_job[2],
+        "company_id": updated_job[3],
+        "city": updated_job[4],
+        "salary": updated_job[5],
+        "duration": updated_job[6],
+        "start_date": str(updated_job[7]) if updated_job[7] else None,
+        "education_level": updated_job[8]
     }
 
 @app.post("/jobs", response_model=Job)
