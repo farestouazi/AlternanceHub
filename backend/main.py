@@ -107,6 +107,37 @@ def create_company(company: CompanyCreate):
         "description": new_company[3]
     }
 
+
+@app.get("/companies/{company_id}", response_model=Company)
+def get_company(company_id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id, name, city, description
+        FROM companies
+        WHERE id = %s
+    """, (company_id,))
+
+    company = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if company is None:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=404,
+            detail="Entreprise introuvable"
+        )
+
+    return {
+        "id": company[0],
+        "name": company[1],
+        "city": company[2],
+        "description": company[3]
+    }
+
 @app.get("/jobs", response_model=list[Job])
 def get_jobs():
     connection = get_connection()
