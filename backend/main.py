@@ -104,6 +104,47 @@ def get_jobs():
 
     return jobs
 
+@app.get("/jobs/{job_id}", response_model=Job)
+def get_job(job_id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            title,
+            description,
+            company_id,
+            city,
+            salary,
+            duration,
+            start_date,
+            education_level
+        FROM jobs
+        WHERE id = %s
+    """, (job_id,))
+
+    job = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if job is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Offre introuvable")
+
+    return {
+        "id": job[0],
+        "title": job[1],
+        "description": job[2],
+        "company_id": job[3],
+        "city": job[4],
+        "salary": job[5],
+        "duration": job[6],
+        "start_date": str(job[7]) if job[7] else None,
+        "education_level": job[8]
+    }
+
 @app.post("/jobs", response_model=Job)
 def create_job(job: JobCreate):
     connection = get_connection()
