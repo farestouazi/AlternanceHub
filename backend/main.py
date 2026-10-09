@@ -9,6 +9,10 @@ class Company(BaseModel):
     city: str | None = None
     description: str | None = None
 
+class CompanyCreate(BaseModel):
+    name: str
+    city: str | None = None
+    description: str | None = None
 class Job(BaseModel):
     id: int
     title: str
@@ -73,6 +77,35 @@ def get_companies():
     connection.close()
 
     return companies
+
+
+@app.post("/companies", response_model=Company)
+def create_company(company: CompanyCreate):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO companies (name, city, description)
+        VALUES (%s, %s, %s)
+        RETURNING id, name, city, description
+    """, (
+        company.name,
+        company.city,
+        company.description
+    ))
+
+    new_company = cursor.fetchone()
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {
+        "id": new_company[0],
+        "name": new_company[1],
+        "city": new_company[2],
+        "description": new_company[3]
+    }
 
 @app.get("/jobs", response_model=list[Job])
 def get_jobs():
