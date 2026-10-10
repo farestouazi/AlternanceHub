@@ -220,7 +220,8 @@ def get_jobs(
     keyword: str | None = None,
     city: str | None = None,
     education_level: str | None = None,
-    duration: str | None = None
+    duration: str | None = None,
+    company_id: int | None = None
 ):
     connection = get_connection()
     cursor = connection.cursor()
@@ -246,6 +247,7 @@ def get_jobs(
             AND (CAST(%s AS TEXT) IS NULL OR city ILIKE %s)
             AND (CAST(%s AS TEXT) IS NULL OR education_level ILIKE %s)
             AND (CAST(%s AS TEXT) IS NULL OR duration ILIKE %s)
+            AND (%s IS NULL OR company_id = %s)
         ORDER BY id
     """
 
@@ -262,7 +264,9 @@ def get_jobs(
         education_level,
         f"%{education_level}%" if education_level else None,
         duration,
-        f"%{duration}%" if duration else None
+        f"%{duration}%" if duration else None,
+        company_id,
+        company_id
     ))
 
     jobs = cursor.fetchall()
