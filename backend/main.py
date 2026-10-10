@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
 from database import get_connection
 from pydantic import BaseModel
 from datetime import date
@@ -130,7 +131,6 @@ def get_company(company_id: int):
     connection.close()
 
     if company is None:
-        from fastapi import HTTPException
         raise HTTPException(
             status_code=404,
             detail="Entreprise introuvable"
@@ -166,7 +166,6 @@ def update_company(company_id: int, company: CompanyUpdate):
     conn.close()
 
     if updated_company is None:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Entreprise introuvable")
 
     return {
@@ -175,6 +174,46 @@ def update_company(company_id: int, company: CompanyUpdate):
         "city": updated_company[2],
         "description": updated_company[3]
     }
+
+@app.delete("/companies/{company_id}")
+def delete_company(company_id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            "DELETE FROM companies WHERE id = %s RETURNING id",
+            (company_id,)
+        )
+        deleted_company = cur.fetchone()
+
+        if deleted_company is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Entreprise introuvable"
+            )
+
+        conn.commit()
+
+        return {
+            "message": "Entreprise supprimée avec succès",
+            "id": deleted_company[0]
+        }
+
+    except HTTPException:
+        conn.rollback()
+        raise
+
+    except Exception:
+        conn.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Impossible de supprimer cette entreprise. Vérifiez si des offres lui sont associées."
+        )
+
+    finally:
+        cur.close()
+        conn.close()
 
 @app.get("/jobs", response_model=list[Job])
 def get_jobs():
@@ -243,7 +282,6 @@ def get_job(job_id: int):
     connection.close()
 
     if job is None:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Offre introuvable")
 
     return {
@@ -336,7 +374,6 @@ def update_job(job_id: int, job: JobUpdate):
     connection.close()
 
     if updated_job is None:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Offre introuvable")
 
     return {
@@ -369,7 +406,6 @@ def delete_job(job_id: int):
     connection.close()
 
     if deleted_job is None:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Offre introuvable")
 
     return {
