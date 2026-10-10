@@ -219,7 +219,8 @@ def delete_company(company_id: int):
 def get_jobs(
     keyword: str | None = None,
     city: str | None = None,
-    education_level: str | None = None
+    education_level: str | None = None,
+    duration: str | None = None
 ):
     connection = get_connection()
     cursor = connection.cursor()
@@ -244,6 +245,7 @@ def get_jobs(
                 education_level ILIKE %s)
             AND (CAST(%s AS TEXT) IS NULL OR city ILIKE %s)
             AND (CAST(%s AS TEXT) IS NULL OR education_level ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR duration ILIKE %s)
         ORDER BY id
     """
 
@@ -258,7 +260,9 @@ def get_jobs(
         city,
         f"%{city}%" if city else None,
         education_level,
-        f"%{education_level}%" if education_level else None
+        f"%{education_level}%" if education_level else None,
+        duration,
+        f"%{duration}%" if duration else None
     ))
 
     jobs = cursor.fetchall()
