@@ -13,6 +13,11 @@ class CompanyCreate(BaseModel):
     name: str
     city: str | None = None
     description: str | None = None
+
+class CompanyUpdate(BaseModel):
+    name: str
+    city: str | None = None
+    description: str | None = None
 class Job(BaseModel):
     id: int
     title: str
@@ -136,6 +141,39 @@ def get_company(company_id: int):
         "name": company[1],
         "city": company[2],
         "description": company[3]
+    }
+
+
+@app.put("/companies/{company_id}", response_model=Company)
+def update_company(company_id: int, company: CompanyUpdate):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        UPDATE companies
+        SET name = %s, city = %s, description = %s
+        WHERE id = %s
+        RETURNING id, name, city, description
+        """,
+        (company.name, company.city, company.description, company_id)
+    )
+
+    updated_company = cur.fetchone()
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    if updated_company is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Entreprise introuvable")
+
+    return {
+        "id": updated_company[0],
+        "name": updated_company[1],
+        "city": updated_company[2],
+        "description": updated_company[3]
     }
 
 @app.get("/jobs", response_model=list[Job])
