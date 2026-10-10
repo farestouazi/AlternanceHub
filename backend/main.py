@@ -215,24 +215,52 @@ def delete_company(company_id: int):
         cur.close()
         conn.close()
 
-@app.get("/jobs", response_model=list[Job])
-def get_jobs():
-    connection = get_connection()
 
+@app.get("/jobs", response_model=list[Job])
+def get_jobs(keyword: str | None = None):
+    connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("""
-        SELECT
-            id,
-            title,
-            description,
-            company_id,
-            city,
-            salary,
-            duration,
-            start_date,
-            education_level
-        FROM jobs
-    """)
+
+    if keyword:
+        cursor.execute("""
+            SELECT
+                id,
+                title,
+                description,
+                company_id,
+                city,
+                salary,
+                duration,
+                start_date,
+                education_level
+            FROM jobs
+            WHERE
+                title ILIKE %s
+                OR description ILIKE %s
+                OR city ILIKE %s
+                OR education_level ILIKE %s
+            ORDER BY id
+        """, (
+            f"%{keyword}%",
+            f"%{keyword}%",
+            f"%{keyword}%",
+            f"%{keyword}%"
+        ))
+    else:
+        cursor.execute("""
+            SELECT
+                id,
+                title,
+                description,
+                company_id,
+                city,
+                salary,
+                duration,
+                start_date,
+                education_level
+            FROM jobs
+            ORDER BY id
+        """)
 
     jobs = cursor.fetchall()
 
