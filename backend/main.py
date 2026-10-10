@@ -215,52 +215,51 @@ def delete_company(company_id: int):
         cur.close()
         conn.close()
 
-
 @app.get("/jobs", response_model=list[Job])
-def get_jobs(keyword: str | None = None):
+def get_jobs(
+    keyword: str | None = None,
+    city: str | None = None,
+    education_level: str | None = None
+):
     connection = get_connection()
     cursor = connection.cursor()
 
-    if keyword:
-        cursor.execute("""
-            SELECT
-                id,
-                title,
-                description,
-                company_id,
-                city,
-                salary,
-                duration,
-                start_date,
-                education_level
-            FROM jobs
-            WHERE
-                title ILIKE %s
-                OR description ILIKE %s
-                OR city ILIKE %s
-                OR education_level ILIKE %s
-            ORDER BY id
-        """, (
-            f"%{keyword}%",
-            f"%{keyword}%",
-            f"%{keyword}%",
-            f"%{keyword}%"
-        ))
-    else:
-        cursor.execute("""
-            SELECT
-                id,
-                title,
-                description,
-                company_id,
-                city,
-                salary,
-                duration,
-                start_date,
-                education_level
-            FROM jobs
-            ORDER BY id
-        """)
+    query = """
+        SELECT
+            id,
+            title,
+            description,
+            company_id,
+            city,
+            salary,
+            duration,
+            start_date,
+            education_level
+        FROM jobs
+        WHERE
+            (CAST(%s AS TEXT) IS NULL OR
+                title ILIKE %s OR
+                description ILIKE %s OR
+                city ILIKE %s OR
+                education_level ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR city ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR education_level ILIKE %s)
+        ORDER BY id
+    """
+
+    keyword_filter = f"%{keyword}%" if keyword else None
+
+    cursor.execute(query, (
+        keyword,
+        keyword_filter,
+        keyword_filter,
+        keyword_filter,
+        keyword_filter,
+        city,
+        f"%{city}%" if city else None,
+        education_level,
+        f"%{education_level}%" if education_level else None
+    ))
 
     jobs = cursor.fetchall()
 
