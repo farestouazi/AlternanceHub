@@ -64,27 +64,33 @@ def home():
 @app.get("/companies", response_model=list[Company])
 def get_companies():
     connection = get_connection()
+    cursor = None
 
-    cursor = connection.cursor()
-    cursor.execute("SELECT id, name, city, description FROM companies")
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT id, name, city, description FROM companies"
+        )
 
-    companies = cursor.fetchall()
+        companies = cursor.fetchall()
 
-    companies = [
-        {
-            "id": company[0],
-            "name": company[1],
-            "city": company[2],
-            "description": company[3]
-        }
-        for company in companies
-    ]
+        companies = [
+            {
+                "id": company[0],
+                "name": company[1],
+                "city": company[2],
+                "description": company[3],
+            }
+            for company in companies
+        ]
 
-    cursor.close()
-    connection.close()
+        return companies
 
-    return companies
+    finally:
+        if cursor is not None:
+            cursor.close()
 
+        connection.close()
 
 @app.post("/companies", response_model=Company)
 def create_company(company: CompanyCreate):
