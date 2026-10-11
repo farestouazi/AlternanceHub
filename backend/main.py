@@ -24,6 +24,7 @@ class Job(BaseModel):
     title: str
     description: str
     company_id: int
+    company_name: str | None = None
     city: str | None = None
     salary: str | None = None
     duration: str | None = None
@@ -112,7 +113,6 @@ def create_company(company: CompanyCreate):
         "city": new_company[2],
         "description": new_company[3]
     }
-
 
 @app.get("/companies/{company_id}", response_model=Company)
 def get_company(company_id: int):
@@ -228,26 +228,28 @@ def get_jobs(
 
     query = """
         SELECT
-            id,
-            title,
-            description,
-            company_id,
-            city,
-            salary,
-            duration,
-            start_date,
-            education_level
+            jobs.id,
+            jobs.title,
+            jobs.description,
+            jobs.company_id,
+            companies.name AS company_name,
+            jobs.city,
+            jobs.salary,
+            jobs.duration,
+            jobs.start_date,
+            jobs.education_level
         FROM jobs
+        JOIN companies ON jobs.company_id = companies.id
         WHERE
             (CAST(%s AS TEXT) IS NULL OR
-                title ILIKE %s OR
-                description ILIKE %s OR
-                city ILIKE %s OR
-                education_level ILIKE %s)
-            AND (CAST(%s AS TEXT) IS NULL OR city ILIKE %s)
-            AND (CAST(%s AS TEXT) IS NULL OR education_level ILIKE %s)
-            AND (CAST(%s AS TEXT) IS NULL OR duration ILIKE %s)
-            AND (%s IS NULL OR company_id = %s)
+                jobs.title ILIKE %s OR
+                jobs.description ILIKE %s OR
+                jobs.city ILIKE %s OR
+                jobs.education_level ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR jobs.city ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR jobs.education_level ILIKE %s)
+            AND (CAST(%s AS TEXT) IS NULL OR jobs.duration ILIKE %s)
+            AND (CAST(%s AS INTEGER) IS NULL OR jobs.company_id = %s)
         ORDER BY id
     """
 
@@ -277,11 +279,12 @@ def get_jobs(
             "title": job[1],
             "description": job[2],
             "company_id": job[3],
-            "city": job[4],
-            "salary": job[5],
-            "duration": job[6],
-            "start_date": str(job[7]) if job[7] else None,
-            "education_level": job[8]
+            "company_name": job[4],
+            "city": job[5],
+            "salary": job[6],
+            "duration": job[7],
+            "start_date": str(job[8]) if job[8] else None,
+            "education_level": job[9]
         }
         for job in jobs
     ]
