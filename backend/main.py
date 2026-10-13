@@ -64,6 +64,18 @@ class JobUpdate(BaseModel):
     start_date: date | None = None
     education_level: str | None = None
 
+    @field_validator("title", "description")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Ce champ ne peut pas être vide ou contenir uniquement des espaces."
+            )
+
+        return value
+
 app = FastAPI()
 
 @app.get("/")
