@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
 from database import get_connection
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import date
 
 class Company(BaseModel):
@@ -38,8 +38,20 @@ class JobCreate(BaseModel):
     city: str | None = None
     salary: str | None = None
     duration: str | None = None
-    start_date: str | None = None
+    start_date: date | None = None
     education_level: str | None = None
+
+    @field_validator("title", "description")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Ce champ ne peut pas être vide ou contenir uniquement des espaces."
+            )
+
+        return value
 
 class JobUpdate(BaseModel):
     title: str
@@ -438,7 +450,12 @@ def create_job(job: JobCreate):
 
         return {
             "id": job_id,
-            **job.model_dump(),
+            **job.model_dump(exclude={"start_date"}),
+            "start_date": (
+                job.start_date.isoformat()
+                if job.start_date
+                else None
+            ),
             "company_name": company[0] if company else None
         }
 
