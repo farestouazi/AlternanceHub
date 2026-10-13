@@ -543,6 +543,13 @@ def update_job(job_id: int, job: JobUpdate):
         connection.rollback()
         raise
 
+    except ForeignKeyViolation:
+        connection.rollback()
+        raise HTTPException(
+            status_code=404,
+            detail="Entreprise introuvable. Impossible de modifier cette offre."
+        )
+
     except Exception:
         connection.rollback()
         raise
