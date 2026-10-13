@@ -266,13 +266,17 @@ def delete_company(company_id: int):
         conn.rollback()
         raise
 
-    except Exception:
+    except ForeignKeyViolation:
         conn.rollback()
         raise HTTPException(
             status_code=409,
-            detail="Impossible de supprimer cette entreprise. "
-                   "Vérifiez si des offres lui sont associées."
+            detail="Impossible de supprimer cette entreprise : "
+                   "des offres lui sont encore associées."
         )
+
+    except Exception:
+        conn.rollback()
+        raise
 
     finally:
         if cur is not None:
