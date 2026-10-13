@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from database import get_connection
 from pydantic import BaseModel, field_validator
 from datetime import date
+from psycopg.errors import ForeignKeyViolation
 
 class Company(BaseModel):
     id: int
@@ -458,6 +459,13 @@ def create_job(job: JobCreate):
             ),
             "company_name": company[0] if company else None
         }
+
+    except ForeignKeyViolation:
+        connection.rollback()
+        raise HTTPException(
+            status_code=404,
+            detail="Entreprise introuvable. Impossible de créer cette offre."
+        )
 
     except Exception:
         connection.rollback()
