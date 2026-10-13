@@ -16,10 +16,52 @@ class CompanyCreate(BaseModel):
     city: str | None = None
     description: str | None = None
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Le nom de l'entreprise ne peut pas être vide."
+            )
+
+        return value
+
+    @field_validator("city", "description")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
+
 class CompanyUpdate(BaseModel):
     name: str
     city: str | None = None
     description: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Le nom de l'entreprise ne peut pas être vide."
+            )
+
+        return value
+
+    @field_validator("city", "description")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
 class Job(BaseModel):
     id: int
     title: str
@@ -54,6 +96,20 @@ class JobCreate(BaseModel):
 
         return value
 
+    @field_validator(
+        "city",
+        "salary",
+        "duration",
+        "education_level"
+    )
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
+
 class JobUpdate(BaseModel):
     title: str
     description: str
@@ -76,14 +132,24 @@ class JobUpdate(BaseModel):
 
         return value
 
+    @field_validator(
+        "city",
+        "salary",
+        "duration",
+        "education_level"
+    )
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
+
 app = FastAPI()
 
 @app.get("/")
 def home():
-    connection = get_connection()
-
-    connection.close()
-
     return {"message": "Bienvenue sur AlternanceHub !"}
 
 @app.get("/companies", response_model=list[Company])
