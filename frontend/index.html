@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Trouve ton alternance avec AlternanceHub.">
+    <title>AlternanceHub — Trouve ton alternance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <header class="navbar">
+        <a class="logo" href="#" aria-label="AlternanceHub, accueil">
+            <span class="logo-icon">A</span>
+            Alternance<span>Hub</span>
+        </a>
+        <nav>
+            <a href="#offres">Les offres</a>
+            <a href="#apropos">À propos</a>
+        </nav>
+        <a class="nav-cta" href="#offres">Trouver une alternance ↗</a>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <span class="eyebrow"><span class="status-dot"></span> TON AVENIR COMMENCE ICI</span>
+                <h1>Ton prochain chapitre<br>commence <span>en alternance.</span></h1>
+                <p>Découvre des opportunités qui correspondent à tes ambitions. Trouve l'entreprise qui te fera grandir.
+                </p>
+                <a class="hero-button" href="#offres">Explorer les offres <span>↗</span></a>
+                <div class="hero-note">
+                    <span class="note-icon">✦</span>
+                    Des opportunités pour construire ton avenir professionnel.
+                </div>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="visual-orbit orbit-one"></div>
+                <div class="visual-orbit orbit-two"></div>
+                <div class="visual-center">
+                    <span class="visual-star">✳</span>
+                    <span>YOUR<br>NEXT STEP</span>
+                </div>
+                <div class="floating-card card-top">
+                    <span class="floating-icon">↗</span>
+                    <div><strong>Un nouveau départ</strong><small>À portée de clic</small></div>
+                </div>
+                <div class="floating-card card-bottom">
+                    <span class="floating-check">✓</span>
+                    <div><strong>À toi de jouer</strong><small>Ton parcours, tes choix</small></div>
+                </div>
+                <span class="visual-spark spark-one">✦</span>
+                <span class="visual-spark spark-two">✧</span>
+            </div>
+        </section>
+
+        <section class="stats">
+            <div><span class="stat-number">01</span><span class="stat-label">Explore les opportunités</span></div>
+            <div><span class="stat-number">02</span><span class="stat-label">Trouve le bon match</span></div>
+            <div><span class="stat-number">03</span><span class="stat-label">Construis ton avenir</span></div>
+        </section>
+
+        <section class="jobs-section" id="offres">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">LE PROCHAIN PAS</span>
+                    <h2>Les opportunités <span>du moment.</span></h2>
+                    <p>Des offres à explorer, des projets à découvrir.</p>
+                </div>
+                <span class="offer-count" id="offer-count">Chargement des offres…</span>
+            </div>
+
+            <form class="filters" id="filters">
+                <label class="search-field">
+                    <span aria-hidden="true">⌕</span>
+                    <input id="keyword" type="search" placeholder="Intitulé, compétence, mot-clé…" autocomplete="off">
+                </label>
+                <select id="city" aria-label="Filtrer par ville">
+                    <option value="">Toutes les villes</option>
+                </select>
+                <select id="education" aria-label="Filtrer par niveau d'études">
+                    <option value="">Tous les niveaux</option>
+                </select>
+                <select id="duration" aria-label="Filtrer par durée">
+                    <option value="">Toutes les durées</option>
+                </select>
+                <select id="company" aria-label="Filtrer par entreprise">
+                    <option value="">Toutes les entreprises</option>
+                </select>
+                <button class="reset-button" type="button" id="reset-filters">Réinitialiser</button>
+            </form>
+
+            <div class="results-bar">
+                <span id="results-label">Toutes les offres</span>
+                <span class="live-indicator"><span class="status-dot"></span> Données en direct</span>
+            </div>
+
+            <div class="jobs-grid" id="jobs-grid" aria-live="polite">
+                <div class="state-message">Chargement des opportunités…</div>
+            </div>
+        </section>
+
+        <section class="about-section" id="apropos">
+            <div class="about-mark">A<span>H</span></div>
+            <div>
+                <span class="eyebrow">À PROPOS D'ALTERNANCEHUB</span>
+                <h2>Le début de quelque chose<br><span>de grand.</span></h2>
+            </div>
+            <p>AlternanceHub rapproche les étudiants et les entreprises pour rendre la recherche d'alternance plus
+                simple, plus claire et plus accessible.</p>
+        </section>
+    </main>
+
+    <footer>
+        <a class="logo footer-logo" href="#"><span class="logo-icon">A</span> Alternance<span>Hub</span></a>
+        <p>Fait pour la prochaine génération. © <span id="year"></span> AlternanceHub</p>
+        <a href="#offres">Explorer les offres ↑</a>
+    </footer>
+
+    <dialog id="job-dialog" class="job-dialog">
+        <button type="button" class="dialog-close" id="close-dialog" aria-label="Fermer">×</button>
+        <div id="job-detail"></div>
+    </dialog>
+</body>
+
+</html>
